@@ -42,7 +42,6 @@ int main( int argc, char* argv[] )
 	int N = 34546; //todo :)
 	
 	
-
 	// Initializes the default values of the row vector rOld
 	double *rOld;
 	rOldInit(rOld, N, beta);
@@ -56,7 +55,8 @@ int main( int argc, char* argv[] )
 		for( int j = 0; j < N; j++ )
 		{
 			// gets the total number of inNodes for a particular node given its id
-			int noOfInNodes = getNoOfInNodes(nodeIdA, graph);
+			TNGraph::TNodeI NI = graph->GetNI(nodeIdA);
+			int noOfInNodes = NI.GetInDeg();
 
 			if( noOfInNodes < 1 )
 			{
@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
 				for( int i = 0; i < noOfInNodes; i++ )
 				{
 					// gets the out-degree of a particular in-node given its id
-					int outDegreeOfInNode = getOutDegreeOfInNode(inNodesList[i]);
+					TNGraph::TNodeI MI = graph->GetNI(inNodesList[i]);
 
 					sum += beta * ( rOld[i] / outDegreeOfInNode );
 				}
