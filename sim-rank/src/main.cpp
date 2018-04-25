@@ -28,13 +28,17 @@ int main( int argc, char* argv[] )
 
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
-	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input undirected graph file");
+	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input directed graph file");
 	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
-	int N; //todo
+	int N;
+	for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) 
+	{ 
+		printf("node id %d with out-degree %d and in-degree %d\n", NI.GetId(), NI.GetOutDeg(), NI.GetInDeg()); 
+	}
 	
 	
 
-	// Initializes the default values of the row vector rOld
+	/*// Initializes the default values of the row vector rOld
 	double *rOld;
 	rOldInit(rOld, N, beta);
 
@@ -106,7 +110,7 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete[] rOld;
-	delete[] rNew;
+	delete[] rNew;*/
 
   	return 0;
 }
