@@ -21,8 +21,8 @@ int main( int argc, char* argv[] )
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
 	int N;
-	PNGraph *PGraph;
-	graphInit(dataSetPath, PGraph, &N);
+	PNGraph *graph;
+	graphInit(dataSetPath, graph, &N);
 
 	// Initializes the default values of the row vector rOld
 	double *rOld;
@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
 		for( int j = 0; j < N; j++ )
 		{
 			// gets the total number of inNodes for a particular node given its id
-			int noOfInNodes = getNoOfInNodes(nodeIdA);	
+			int noOfInNodes = getNoOfInNodes(nodeIdA, graph);
 
 			if( noOfInNodes < 1 )
 			{
@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 			else
 			{
 				// gets the list of inNodes of a particular node given its id
-				int* inNodesList = getInNodesList(nodeIdA);
+				int* inNodesList = getInNodesList(nodeIdA, graph);
 
 				double sum = 0;
 
