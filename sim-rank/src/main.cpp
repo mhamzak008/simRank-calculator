@@ -13,6 +13,12 @@ int main( int argc, char* argv[] )
 	// Constants
 	double beta = 0.8;
 
+	//Variables
+	char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
+	char line[200];
+	int count = 0;
+	char *row;
+
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
 
@@ -25,20 +31,19 @@ int main( int argc, char* argv[] )
 	TInt nodeIdA = atoi(argv[1]);
 	TInt nodeIdB = atoi(argv[2]);
 	TStr dataSetPath = argv[3];
+	dataSetPath2 = argv[3];
 
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
 	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input directed graph file");
 	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
-	int N;
-	for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) 
-	{ 
-		printf("node id %d with out-degree %d and in-degree %d\n", NI.GetId(), NI.GetOutDeg(), NI.GetInDeg()); 
-	}
+
+
+	int N = 34546; //todo :)
 	
 	
 
-	/*// Initializes the default values of the row vector rOld
+	// Initializes the default values of the row vector rOld
 	double *rOld;
 	rOldInit(rOld, N, beta);
 
@@ -110,7 +115,7 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete[] rOld;
-	delete[] rNew;*/
+	delete[] rNew;
 
   	return 0;
 }
