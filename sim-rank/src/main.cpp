@@ -73,6 +73,7 @@ int main( int argc, char* argv[] )
 				{
 					// gets the out-degree of a particular in-node given its id
 					TNGraph::TNodeI MI = graph->GetNI(inNodesList[i]);
+					int outDegreeOfInNode = MI.GetOutDeg();
 
 					sum += beta * ( rOld[i] / outDegreeOfInNode );
 				}
