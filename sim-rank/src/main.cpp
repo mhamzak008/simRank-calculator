@@ -1,28 +1,38 @@
 #include <iostream>
 
 #include "stdafx.h"
+#include "Snap.h"
 
 using namespace std;
 
+
 int main( int argc, char* argv[] ) 
 {
-	cout << "Hello World!" << endl;
+	Env = TEnv(argc, argv, TNotify::StdNotify);
 
 	// Constants
 	double beta = 0.8;
 
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
-	int nodeIdA;
-	int nodeIdB;
-	string dataSetPath;
-	getUserInput( &nodeIdA, &nodeIdB, &dataSetPath );
+
+	if(argc != 4)
+	{
+		printf("Usage: %s [node-id A] [node-id B] [dataset path]\n", argv[0]);
+		exit(1);
+	}
+	
+	TInt nodeIdA = atoi(argv[1]);
+	TInt nodeIdB = atoi(argv[2]);
+	TStr dataSetPath = argv[3];
 
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
-	int N;
-	PNGraph *graph;
-	graphInit(dataSetPath, graph, &N);
+	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input undirected graph file");
+	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
+	int N; //todo
+	
+	
 
 	// Initializes the default values of the row vector rOld
 	double *rOld;
@@ -100,6 +110,7 @@ int main( int argc, char* argv[] )
 
   	return 0;
 }
+
 
 
 
