@@ -40,14 +40,13 @@ int main( int argc, char* argv[] )
 
 
 	int N = 34546; //todo :)
+    double Ndb = 34546.0;
 	
-	
-	// Initializes the default values of the row vector rOld
-	double *rOld;
-	rOldInit(rOld, N, beta);
-
+	// Initializes the default values of the row vector rOld --> rOldInit
+	double *rOld= new double[N];
+    int val= 0.8/34576.0;
+    fill(rOld, rOld+N, val);
 	double *rNew = new double[N];
-
 	// Calculates simRank i.e pageRank with restarts with respect to nodeIdA
 	bool converged = false;
 	while( converged == false )
@@ -97,9 +96,13 @@ int main( int argc, char* argv[] )
 		converged = isConverged(rOld, rNew);
 
 		// rOld becomes rNew
-		// delete rOld, create new rOld, init rOld to same values as rNew
-		rOldBecomesRNew(rOld, rNew);
-	}	
+		// delete rOld, create new rOld, init rOld to same values as rNew done
+        for(int i = 0 ; i<N; i++){
+            rOld[i] = rNew[i];
+        }
+        memset(rNew, 0, N*sizeof(double));
+
+    }
 
 	// Should return true iff the sum of all values of the row vector rNew
 	// is equal to 1
@@ -120,7 +123,4 @@ int main( int argc, char* argv[] )
 
   	return 0;
 }
-
-
-
 
