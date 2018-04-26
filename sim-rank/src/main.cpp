@@ -5,6 +5,20 @@
 
 using namespace std;
 
+bool isCorrect(double* rNew, int size)
+{
+	double sum = 0.0;
+
+	for( int i = 0; i < size; i++ )
+	{
+		sum += rNew[i];
+	}
+
+	if( sum == 1.0 )
+		return true;
+
+	return false;
+}
 
 int main( int argc, char* argv[] ) 
 {
@@ -38,9 +52,8 @@ int main( int argc, char* argv[] )
 	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input directed graph file");
 	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
 
-
-	int N = 34546; //todo :)
-    double Ndb = 34546.0;
+	int N = graph->GetNodes();
+    double Ndb = N;
 	
 	// Initializes the default values of the row vector rOld --> rOldInit
 	double *rOld= new double[N];
@@ -106,7 +119,7 @@ int main( int argc, char* argv[] )
 
 	// Should return true iff the sum of all values of the row vector rNew
 	// is equal to 1
-	bool finalCheck = isCorrect(rNew);
+	bool finalCheck = isCorrect(rNew, N);
 
 	if( finalCheck )
 	{
