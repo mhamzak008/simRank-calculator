@@ -20,6 +20,51 @@ bool isCorrect(double* rNew, int size)
 	return false;
 }
 
+bool isConverged(double* rOld, double* rNew, int size) {
+	double threshold = 0.00001;
+
+	double avg_difference = 0.0;
+
+	for (int i = 0; i < size; i++) {
+		double diff = (rNew[i] - rOld[i]);
+		avg_difference += diff > 0 ? diff : -diff;
+	}
+
+	avg_difference /= size;
+	if (avg_difference <= threshold) {
+		return true;
+	}
+	return false;
+
+}
+
+TInt* getInNodesList(TInt nodeId, PNGraph graph, int size) {
+	TIntV allNodeIds = TIntV(size);
+	graph->GetNIdV(allNodeIds);
+
+	TNGraph::TNodeI NI = graph->GetNI(nodeId);
+	int noOfInNodes = NI.GetInDeg();
+
+	TInt* result = new TInt[noOfInNodes];
+	int index = 0;
+
+	for (int i = 0; i < size; i++) {
+		TNGraph::TNodeI current = graph->GetNI(allNodeIds[i]);
+		if (current.IsOutNId(nodeId)) {
+			result[index] = allNodeIds[i];
+			index++;
+		}
+	}
+
+	// verify that k nodes are returned and k was the initial outdegree of starting node
+	if (noOfInNodes != index) {
+		cout << "Something went wrong in getInNodesList\n";
+	}
+
+	return result;
+
+}
+
 int main( int argc, char* argv[] ) 
 {
 	Env = TEnv(argc, argv, TNotify::StdNotify);
@@ -77,7 +122,7 @@ int main( int argc, char* argv[] )
 			else
 			{
 				// gets the list of inNodes of a particular node given its id
-				int* inNodesList = getInNodesList(nodeIdA, graph);
+				TInt* inNodesList = getInNodesList(nodeIdA, graph, N);
 
 				double sum = 0;
 
@@ -106,7 +151,7 @@ int main( int argc, char* argv[] )
 
 		// given the old and new row vectors, rOld and rNew,
 		// tells if convergence has been reached
-		converged = isConverged(rOld, rNew);
+		converged = isConverged(rOld, rNew, N);
 
 		// rOld becomes rNew
 		// delete rOld, create new rOld, init rOld to same values as rNew done
