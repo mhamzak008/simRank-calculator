@@ -62,7 +62,6 @@ TInt* getInNodesList(TInt nodeId, PNGraph graph, int size) {
 	}
 
 	return result;
-
 }
 
 int main( int argc, char* argv[] ) 
@@ -80,13 +79,11 @@ int main( int argc, char* argv[] )
 
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
-
 	if(argc != 4)
 	{
 		printf("Usage: %s [node-id A] [node-id B] [dataset path]\n", argv[0]);
 		exit(1);
 	}
-	
 	TInt nodeIdA = atoi(argv[1]);
 	TInt nodeIdB = atoi(argv[2]);
 	TStr dataSetPath = argv[3];
@@ -98,21 +95,38 @@ int main( int argc, char* argv[] )
 	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
 
 	int N = graph->GetNodes();
-    double Ndb = N;
-	
+	double Ndb = N;
+
 	// Initializes the default values of the row vector rOld --> rOldInit
+	// Should we initialize all rOld values to 0 except for the starting node?
+	// Or should we assign equal initial probabilities to all nodes?
 	double *rOld= new double[N];
-    int val= 0.8/34576.0;
-    fill(rOld, rOld+N, val);
+	double val= 1/Ndb;
+	//	fill(rOld, rOld+N, val);
+	// debug
+	fill(rOld, rOld+N, 0);
+	rOld[0] = 1;
 	double *rNew = new double[N];
+
 	// Calculates simRank i.e pageRank with restarts with respect to nodeIdA
 	bool converged = false;
 	while( converged == false )
 	{
+		// debug
+		for( int i = 0; i < N; i++ )
+		{
+			cout << "rOld " << i << " is " << rOld[i] << endl;
+		}
+		for( int i = 0; i < N; i++ )
+		{
+			cout << "rNew " << i << " is " << rNew[i] << endl;
+		}
+		cout << "-------------------------" << endl;
+
 		for( int j = 0; j < N; j++ )
 		{
 			// gets the total number of inNodes for a particular node given its id
-			TNGraph::TNodeI NI = graph->GetNI(nodeIdA);
+			TNGraph::TNodeI NI = graph->GetNI(j);
 			int noOfInNodes = NI.GetInDeg();
 
 			if( noOfInNodes < 1 )
@@ -122,10 +136,9 @@ int main( int argc, char* argv[] )
 			else
 			{
 				// gets the list of inNodes of a particular node given its id
-				TInt* inNodesList = getInNodesList(nodeIdA, graph, N);
+				TInt* inNodesList = getInNodesList(j, graph, N);
 
 				double sum = 0;
-
 				for( int i = 0; i < noOfInNodes; i++ )
 				{
 					// gets the out-degree of a particular in-node given its id
@@ -134,20 +147,26 @@ int main( int argc, char* argv[] )
 
 					sum += beta * ( rOld[i] / outDegreeOfInNode );
 				}
-
 				rNew[j] = sum;
 			}
 		}
 
 		// Re-insert the leaked PageRank
+		// Should we re-insert it to all nodes?
+		// or should we re-insert it to only the starting node?
+		// Calculating what needs to be re-inserted
 		double S = 0;
 		for( int i = 0; i < N; i++ )
 		{
 			S += rNew[i];
 		}
-		// Since, it's pageRank with restarts, teleport set contains only one node
-		// Hence, only one update is required
-		rNew[nodeIdA] += (1 - S) / N;	
+		// re-inserted
+		//	rNew[nodeIdA] += (1.0 - S);
+		// debug
+		for( int i = 0; i < 4; i ++ )
+		{
+			rNew[i] += (1.0 - S) / Ndb;
+		}
 
 		// given the old and new row vectors, rOld and rNew,
 		// tells if convergence has been reached
@@ -155,15 +174,12 @@ int main( int argc, char* argv[] )
 
 		// rOld becomes rNew
 		// delete rOld, create new rOld, init rOld to same values as rNew done
-        for(int i = 0 ; i<N; i++){
-            rOld[i] = rNew[i];
-        }
-        memset(rNew, 0, N*sizeof(double));
+		for(int i = 0 ; i<N; i++){
+			rOld[i] = rNew[i];
+		}
+	}
 
-    }
-
-	// Should return true iff the sum of all values of the row vector rNew
-	// is equal to 1
+	// Should return true iff the sum of all values of the row vector rNew is equal to 1
 	bool finalCheck = isCorrect(rNew, N);
 
 	if( finalCheck )
@@ -179,6 +195,6 @@ int main( int argc, char* argv[] )
 	delete[] rOld;
 	delete[] rNew;
 
-  	return 0;
+	return 0;
 }
 
