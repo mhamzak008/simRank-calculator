@@ -2,6 +2,7 @@
 
 #include "stdafx.h"
 #include "Snap.h"
+#include <map>
 
 using namespace std;
 
@@ -13,9 +14,11 @@ bool isCorrect(double* rNew, int size)
 	{
 		sum += rNew[i];
 	}
-
+	cout << "Sum is: "<< sum << endl;
 	if( sum == 1.0 )
+	{		
 		return true;
+	}
 
 	return false;
 }
@@ -72,10 +75,8 @@ int main( int argc, char* argv[] )
 	double beta = 0.8;
 
 	//Variables
-	char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
-	char line[200];
-	int count = 0;
-	char *row;
+	// char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
+	// char line[200];
 
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
@@ -87,7 +88,7 @@ int main( int argc, char* argv[] )
 	TInt nodeIdA = atoi(argv[1]);
 	TInt nodeIdB = atoi(argv[2]);
 	TStr dataSetPath = argv[3];
-	dataSetPath2 = argv[3];
+//	dataSetPath2 = argv[3];
 
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
@@ -95,48 +96,52 @@ int main( int argc, char* argv[] )
 	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
 
 	int N = graph->GetNodes();
-	double Ndb = N;
+//	double Ndb = N;
+
+	//Generates key-val pairs from graph
+	int i = 0;
+	map <int, int> ids;
+	for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++)		
+	{
+		ids.insert(pair <int, int> (NI.GetId(), i));
+		i++;
+	}
 
 	// Initializes the default values of the row vector rOld --> rOldInit
 	// Should we initialize all rOld values to 0 except for the starting node?
 	// Or should we assign equal initial probabilities to all nodes?
 	double *rOld= new double[N];
-	double val= 1/Ndb;
-	//	fill(rOld, rOld+N, val);
-	// debug
+
+	// initializing all nodes with equal initial porbabilities
+	// double val= 1 / Ndb;
+	// fill(rOld, rOld+N, val);
+
+	// initializing all rOld values to 0 except for the starting node
 	fill(rOld, rOld+N, 0);
-	rOld[0] = 1;
+	rOld[ids.find(nodeIdA)->second] = 1;
+
 	double *rNew = new double[N];
 
 	// Calculates simRank i.e pageRank with restarts with respect to nodeIdA
 	bool converged = false;
+	int iteration = 0;
 	while( converged == false )
-	{
-		// debug
-		for( int i = 0; i < N; i++ )
-		{
-			cout << "rOld " << i << " is " << rOld[i] << endl;
-		}
-		for( int i = 0; i < N; i++ )
-		{
-			cout << "rNew " << i << " is " << rNew[i] << endl;
-		}
-		cout << "-------------------------" << endl;
-
-		for( int j = 0; j < N; j++ )
+	{	
+		for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++)		
 		{
 			// gets the total number of inNodes for a particular node given its id
-			TNGraph::TNodeI NI = graph->GetNI(j);
+			//TNGraph::TNodeI NI = graph->GetNI(j);
 			int noOfInNodes = NI.GetInDeg();
-
+			int NId = NI.GetId();
+			
 			if( noOfInNodes < 1 )
 			{
-				rNew[j] = 0;
+				rNew[ids.find(NId)->second] = 0;
 			}
 			else
 			{
 				// gets the list of inNodes of a particular node given its id
-				TInt* inNodesList = getInNodesList(j, graph, N);
+				TInt* inNodesList = getInNodesList(NId, graph, N);
 
 				double sum = 0;
 				for( int i = 0; i < noOfInNodes; i++ )
@@ -144,10 +149,10 @@ int main( int argc, char* argv[] )
 					// gets the out-degree of a particular in-node given its id
 					TNGraph::TNodeI MI = graph->GetNI(inNodesList[i]);
 					int outDegreeOfInNode = MI.GetOutDeg();
-
-					sum += beta * ( rOld[i] / outDegreeOfInNode );
+					
+					sum += beta * ( rOld[ids.find(inNodesList[i])->second] / outDegreeOfInNode );
 				}
-				rNew[j] = sum;
+				rNew[ids.find(NId)->second] = sum;
 			}
 		}
 
@@ -161,24 +166,28 @@ int main( int argc, char* argv[] )
 			S += rNew[i];
 		}
 		// re-inserted
-		//	rNew[nodeIdA] += (1.0 - S);
+		rNew[ids.find(nodeIdA)->second] += (1.0 - S);
 		// debug
-		for( int i = 0; i < 4; i ++ )
+		/*for( int i = 0; i < 4; i ++ )
 		{
 			rNew[i] += (1.0 - S) / Ndb;
-		}
+		}*/
 
 		// given the old and new row vectors, rOld and rNew,
 		// tells if convergence has been reached
-		converged = isConverged(rOld, rNew, N);
+		iteration++;
+		if(iteration == 5)
+			converged = true;
+
+		//converged = isConverged(rOld, rNew, N);
 
 		// rOld becomes rNew
 		// delete rOld, create new rOld, init rOld to same values as rNew done
-		for(int i = 0 ; i<N; i++){
+		for(int i = 0 ; i < N; i++){
 			rOld[i] = rNew[i];
 		}
 	}
-
+	
 	// Should return true iff the sum of all values of the row vector rNew is equal to 1
 	bool finalCheck = isCorrect(rNew, N);
 
@@ -186,7 +195,7 @@ int main( int argc, char* argv[] )
 	{
 		cout << "Success!" << endl;
 
-		cout << "simRank of " << nodeIdB << " with respect to " << nodeIdA << " is: " << rNew[nodeIdB] << endl;
+		cout << "simRank of " << nodeIdB << " with respect to " << nodeIdA << " is: " << rNew[ids.find(nodeIdB)->second] << endl;
 	}
 	else
 		cout << "Failure!" << endl;
