@@ -17,10 +17,10 @@ bool isCorrect(double* rNew, int size)
 	cout << "Sum is: "<< sum << endl;
 	if( sum >= 0.99999 )
 	{		
-		return 1;
+		return true;
 	}
 
-	return 0;
+	return false;
 }
 
 bool isConverged(double* rOld, double* rNew, int size) {
@@ -189,9 +189,9 @@ int main( int argc, char* argv[] )
 	}
 	
 	// Should return true iff the sum of all values of the row vector rNew is equal to 1
-	int finalCheck = isCorrect(rNew, N);
+	bool finalCheck = isCorrect(rNew, N);
 
-	if( finalCheck == 1)
+	if( finalCheck )
 	{
 		cout << "Success!" << endl;
 
