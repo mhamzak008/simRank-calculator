@@ -3,6 +3,8 @@
 #include "stdafx.h"
 #include "Snap.h"
 #include <map>
+#include <cstdio>
+#include <ctime>
 
 using namespace std;
 
@@ -15,7 +17,7 @@ bool isCorrect(double* rNew, int size)
 		sum += rNew[i];
 	}
 	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 )
+	if( sum >= 0.99999 && sum <= 1.00001 )
 	{		
 		return true;
 	}
@@ -69,6 +71,11 @@ TInt* getInNodesList(TInt nodeId, PNGraph graph, int size) {
 
 int main( int argc, char* argv[] ) 
 {
+	// Timer Start
+	std::clock_t start;
+    double duration;
+    start = std::clock();
+
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
 	// Constants
@@ -203,6 +210,10 @@ int main( int argc, char* argv[] )
 	// Clean up
 	delete[] rOld;
 	delete[] rNew;
+
+	// Timer Stop
+	duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;
+    cout <<"Time Taken: "<< duration << " seconds" << cout << endl;
 
 	return 0;
 }
