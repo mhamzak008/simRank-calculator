@@ -1,13 +1,11 @@
-========================================================================
-    simple application 
-========================================================================
-
-The application demonstrates some of the basic functionality of the
-SNAP library.
-
 /////////////////////////////////////////////////////////////////////////////
 Parameter1: Input node with whose respect you want to find similar articles.
 Parameter2: Dataset path relative to the current directory
 
 /////////////////////////////////////////////////////////////////////////////
 Usage: [node-id A] [dataset path]
+
+/////////////////////////////////////////////////////////////////////////////
+Example Usage commands:
+make
+./main 9704296 dataset/high-energy-physics-citation-network/Cit-HepPh.txt
