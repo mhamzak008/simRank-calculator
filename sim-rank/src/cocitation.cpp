@@ -1,5 +1,3 @@
-#include <algorithm>
-
 struct node
 {
 	int value;
@@ -9,6 +7,32 @@ struct node
 bool acompare(node lhs, node rhs) 
 { 
 	return lhs.value > rhs.value; 
+}
+
+TInt* getInNodesListC(TInt nodeId, PNGraph graph, int size) {
+	TIntV allNodeIds = TIntV(size);
+	graph->GetNIdV(allNodeIds);
+
+	TNGraph::TNodeI NI = graph->GetNI(nodeId);
+	int noOfInNodes = NI.GetInDeg();
+
+	TInt* result = new TInt[noOfInNodes];
+	int index = 0;
+
+	for (int i = 0; i < size; i++) {
+		TNGraph::TNodeI current = graph->GetNI(allNodeIds[i]);
+		if (current.IsOutNId(nodeId)) {
+			result[index] = allNodeIds[i];
+			index++;
+		}
+	}
+
+	// verify that k nodes are returned and k was the initial outdegree of starting node
+	if (noOfInNodes != index) {
+		cout << "Something went wrong in getInNodesList\n";
+	}
+
+	return result;
 }
 
 int* calculateCoCitation( int argc, char* argv[], int output[] ) 
@@ -32,7 +56,7 @@ int* calculateCoCitation( int argc, char* argv[], int output[] )
 	// updates N to the size of the graph
 	int N = graph->GetNodes();
 
-	TInt* inNodesListA = getInNodesList(nodeIdA, graph, N);
+	TInt* inNodesListA = getInNodesListC(nodeIdA, graph, N);
 
 	TNGraph::TNodeI NIA = graph->GetNI(nodeIdA);
 	int noOfInNodesA = NIA.GetInDeg();
@@ -42,7 +66,7 @@ int* calculateCoCitation( int argc, char* argv[], int output[] )
 	int c = 0;
 	for( TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++ )		
 	{	
-		TInt* inNodesListTemp = getInNodesList(NI.GetId(), graph, N);
+		TInt* inNodesListTemp = getInNodesListC(NI.GetId(), graph, N);
 		int noOfInNodesTemp = NI.GetInDeg();
 
 		int count = 0;
