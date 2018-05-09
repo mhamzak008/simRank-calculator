@@ -4,17 +4,11 @@
 #include <cstdio>
 #include <ctime>
 
-struct node
-{
-	double value;	// similarity value
-	int id; 		// node id
-};
+using namespace std;
 
 #include "simrank.cpp"
 #include "bibliographiccoupling.cpp"
 #include "cocitation.cpp"
-
-using namespace std;
 
 int main( int argc, char* argv[] ) 
 {
@@ -23,20 +17,25 @@ int main( int argc, char* argv[] )
     double duration;
     start = std::clock();
 
-    node emptyArray1[100];
-    node emptyArray2[100];
-    node emptyArray3[100];
+    int emptyArray1[100];
+    int emptyArray2[100];
+    int emptyArray3[100];
 
     for( int i = 0; i < 100; i++ )
     {
-    	emptyArray1[i].value = 0;
-    	emptyArray2[i].value = 0;
-    	emptyArray3[i].value = 0;
+    	emptyArray1[i] = 0;
+    	emptyArray2[i] = -111;
+    	emptyArray3[i] = 0;
     }
 
-    node* simRank = calculateSimRank(argc, argv, emptyArray1);
-    //double* cocitation = calculateCoCitation(argc, argv, emptyArray2);
+ //   node* simRank = calculateSimRank(argc, argv, emptyArray1);
+    int* cocitation = calculateCoCitation(argc, argv, emptyArray2);
     // double* biblio = calculateBibliographicCoupling(argc, argv, emptyArray3);
+
+    for(int i = 0; i < 100; i++)
+    {
+    	cout << "Node:: " << cocitation[i] << endl;
+    }
 
 	// Timer Stop
 	duration = ( std::clock() - start ) / (double) CLOCKS_PER_SEC;

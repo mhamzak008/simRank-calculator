@@ -1,6 +1,6 @@
-node* calculateBibliographicCoupling( int argc, char* argv[], node output[] ) 
+int* calculateBibliographicCoupling( int argc, char* argv[], int output[] ) 
 {
 
-	
+
 	return output;
 }
