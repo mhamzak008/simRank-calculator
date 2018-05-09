@@ -10,8 +10,6 @@ double elapsed, elapsed1;
 
 using namespace std;
 
-
-
 int startSimRankMP( int argc, char* argv[] ) 
 {
 	Env = TEnv(argc, argv, TNotify::StdNotify);
@@ -71,10 +69,10 @@ int startSimRankMP( int argc, char* argv[] )
 
 	// calculate inNodes for all graphs
 	map <TInt, TInt*> preProcessedInNodes;
-	int iter = 0;
+//	int iter = 0;
 
 	clock_gettime(CLOCK_MONOTONIC, &start1);
-	#pragma omp parallel for
+//	#pragma omp parallel for
 	for(int i = 0; i < ids.size(); i++) 
 	{
 		TNGraph::TNodeI NI = graph->GetNI(reverseids.find(i)->second);
@@ -121,7 +119,7 @@ int startSimRankMP( int argc, char* argv[] )
 				// gets the list of inNodes of a particular node given its id
 				double sum = 0;				
 				TInt* inNodesList = preProcessedInNodes[NId];
-				#pragma omp parallel for private(i)
+			//	#pragma omp parallel for private(i)
 				
 				for( int i = 0; i < noOfInNodes; i++ )
 				{

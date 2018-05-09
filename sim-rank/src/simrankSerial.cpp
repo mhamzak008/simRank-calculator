@@ -1,75 +1,4 @@
-#include <iostream>
-
-#include "stdafx.h"
-#include "Snap.h"
-#include <map>
-#include <unordered_map>
-#include <ctime>
-
-using namespace std;
-
-bool isCorrect(double* rNew, int size)
-{
-	double sum = 0.0;
-
-	for( int i = 0; i < size; i++ )
-	{
-		sum += rNew[i];
-	}
-	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 )
-	{		
-		return true;
-	}
-
-	return false;
-}
-
-bool isConverged(double* rOld, double* rNew, int size) {
-	double threshold = 0.00001;
-
-	double avg_difference = 0.0;
-
-	for (int i = 0; i < size; i++) {
-		double diff = (rNew[i] - rOld[i]);
-		avg_difference += diff > 0 ? diff : -diff;
-	}
-
-	avg_difference /= size;
-	if (avg_difference <= threshold) {
-		return true;
-	}
-	return false;
-
-}
-
-TInt* getInNodesList(TInt nodeId, PNGraph graph, int size) {
-	TIntV allNodeIds = TIntV(size);
-	graph->GetNIdV(allNodeIds);
-
-	TNGraph::TNodeI NI = graph->GetNI(nodeId);
-	int noOfInNodes = NI.GetInDeg();
-
-	TInt* result = new TInt[noOfInNodes];
-	int index = 0;
-
-	for (int i = 0; i < size; i++) {
-		TNGraph::TNodeI current = graph->GetNI(allNodeIds[i]);
-		if (current.IsOutNId(nodeId)) {
-			result[index] = allNodeIds[i];
-			index++;
-		}
-	}
-
-	// verify that k nodes are returned and k was the initial outdegree of starting node
-	if (noOfInNodes != index) {
-		cout << "Something went wrong in getInNodesList\n";
-	}
-
-	return result;
-}
-
-int main( int argc, char* argv[] ) 
+int startSimRankSerial( int argc, char* argv[] ) 
 {
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
@@ -82,14 +11,13 @@ int main( int argc, char* argv[] )
 
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
-	if(argc != 4)
+	if(argc != 3)
 	{
-		printf("Usage: %s [node-id A] [node-id B] [dataset path]\n", argv[0]);
+		printf("Usage: %s [node-id A] [dataset path]\n", argv[0]);
 		exit(1);
 	}
 	TInt nodeIdA = atoi(argv[1]);
-	TInt nodeIdB = atoi(argv[2]);
-	TStr dataSetPath = argv[3];
+	TStr dataSetPath = argv[2];
 //	dataSetPath2 = argv[3];
 
 	// Reads the graph from dataSetPath into PGraph using snap
@@ -126,7 +54,7 @@ int main( int argc, char* argv[] )
 	map<TInt, TInt*> preProcessedInNodes;
 	int iter = 0;
 	for(TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) {
-		if (iter % 1000 == 0)
+		if (iter % 10000 == 0)
 			printf("pre-process %d\n", iter);
 		preProcessedInNodes.insert(pair <TInt, TInt*> (NI.GetId(), getInNodesList(NI.GetId(), graph, N)));
 		iter++;
@@ -141,7 +69,7 @@ int main( int argc, char* argv[] )
 	int iteration = 0;
 	// run the algorithm 10 times
 	for (int j = 0; j < 10; j++) {
-		cout << "iter start: " << j << endl;
+//		cout << "iter start: " << j << endl;
 		struct timespec start, finish;
 		double elapsed;
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -217,7 +145,7 @@ int main( int argc, char* argv[] )
 		elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 		if( finalCheck )
 		{
-			cout << "Success!" << endl;
+	//		cout << "Success!" << endl;
 			cout << "Calculation time:" << (double) elapsed << endl;
 		}
 		else
@@ -225,7 +153,7 @@ int main( int argc, char* argv[] )
 
 		fill(rOld, rOld+N, 0);
 		rOld[ids.find(nodeIdA)->second] = 1;
-		cout << "iter end: " << j << endl;
+//		cout << "iter end: " << j << endl;
 	}
 	
 

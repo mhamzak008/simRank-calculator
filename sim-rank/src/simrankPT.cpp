@@ -1,14 +1,3 @@
-#include <iostream>
-
-#include "stdafx.h"
-#include "Snap.h"
-#include <map>
-#include <pthread.h>
-#include <unordered_map>
-#include <ctime>
-
-using namespace std;
-
 PNGraph graph;
 double *rOld;
 double *rNew;
@@ -60,8 +49,8 @@ bool isCorrect(double* rNew, int size)
 	{
 		sum += rNew[i];
 	}
-	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 )
+//	cout << "Sum is: "<< sum << endl;
+	if( sum >= 0.99999 && sum <= 1.0001)
 	{		
 		return true;
 	}
@@ -118,7 +107,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
 	// Constants
-	double beta = 0.8;
+//	double beta = 0.8;
 
 	//Variables
 	// char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
@@ -184,7 +173,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	int iteration = 0;
 	
 	for (int j = 0; j < 10; j++) {
-		cout << "iter start: " << j << endl;
+	//	cout << "iter start: " << j << endl;
 		struct timespec start, finish;
 		double elapsed;
 		clock_gettime(CLOCK_MONOTONIC, &start);
@@ -277,7 +266,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 		elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
 		if( finalCheck )
 		{
-			cout << "Success!" << endl;
+//			cout << "Success!" << endl;
 			cout << "Calculation time:" << (double) elapsed << endl;
 		}
 		else
@@ -285,7 +274,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 
 		fill(rOld, rOld+N, 0);
 		rOld[ids.find(nodeIdA)->second] = 1;
-		cout << "iter end: " << j << endl;
+//		cout << "iter end: " << j << endl;
 	}
 	
 	
