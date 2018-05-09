@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <unordered_map>
 #include <ctime>
+#include <algorithm>
 
 using namespace std;
 
@@ -61,7 +62,7 @@ bool isCorrect(double* rNew, int size)
 		sum += rNew[i];
 	}
 	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 )
+	if( sum >= 0.99999 && sum <= 1.00001)
 	{		
 		return true;
 	}
@@ -118,7 +119,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
 	// Constants
-	double beta = 0.8;
+//	double beta = 0.8;
 
 	//Variables
 	// char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
