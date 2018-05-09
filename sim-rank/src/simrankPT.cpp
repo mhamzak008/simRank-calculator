@@ -6,7 +6,6 @@
 #include <pthread.h>
 #include <unordered_map>
 #include <ctime>
-#include <algorithm>
 
 using namespace std;
 
@@ -62,7 +61,7 @@ bool isCorrect(double* rNew, int size)
 		sum += rNew[i];
 	}
 	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 && sum <= 1.00001)
+	if( sum >= 0.99999 )
 	{		
 		return true;
 	}
@@ -119,7 +118,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
 	// Constants
-//	double beta = 0.8;
+	double beta = 0.8;
 
 	//Variables
 	// char *dataSetPath2 = (char*)calloc(512, sizeof(char*));
@@ -169,7 +168,7 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	// calculate inNodes for all graphs
 	int iter = 0;
 	for(TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) {
-		if (iter % 1000 == 0)
+		if (iter % 10000 == 0)
 			printf("pre-process %d\n", iter);
 		preProcessedInNodes.insert(pair <TInt, TInt*> (NI.GetId(), getInNodesList(NI.GetId(), graph, N)));
 		iter++;
@@ -180,89 +179,118 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 	rNew = new double[N];
 
 	// Calculates simRank i.e pageRank with restarts with respect to nodeIdA
-	begin = clock();
+
 	bool converged = false;
 	int iteration = 0;
-	while( !converged )
-	{
-
-		// pthread_t tids[7];
-		// int args0[] = {0, 4935};
-		// int args1[] = {4935, 9870};
-		// int args2[] = {9870, 14805};
-		// int args3[] = {14805, 19740};
-		// int args4[] = {19740, 19740+4935};
-		// int args5[] = {19740+4935, 19740+4935+4935};
-		// int args6[] = {19740+4935+4935, 34546};
-
-		// pthread_create(&tids[0], NULL, Runner, (void *) args0);
-		// pthread_create(&tids[1], NULL, Runner, (void *) args1);
-		// pthread_create(&tids[2], NULL, Runner, (void *) args2);
-		// pthread_create(&tids[3], NULL, Runner, (void *) args3);
-		// pthread_create(&tids[4], NULL, Runner, (void *) args4);
-		// pthread_create(&tids[5], NULL, Runner, (void *) args5);
-		// pthread_create(&tids[6], NULL, Runner, (void *) args6);
-
-		// pthread_join(tids[0], NULL);
-		// pthread_join(tids[1], NULL);
-		// pthread_join(tids[2], NULL);
-		// pthread_join(tids[3], NULL);
-		// pthread_join(tids[4], NULL);
-		// pthread_join(tids[5], NULL);
-		// pthread_join(tids[6], NULL);
-
-		pthread_t tids[2];
-		int args0[] = {0, 17273};
-		int args1[] = {17273, 34546};
-
-		pthread_create(&tids[0], NULL, Runner, (void *) args0);
-		pthread_create(&tids[1], NULL, Runner, (void *) args1);
-
-		pthread_join(tids[0], NULL);
-		pthread_join(tids[1], NULL);
-
-		// Re-insert the leaked PageRank
-		// Should we re-insert it to all nodes?
-		// or should we re-insert it to only the starting node?
-		// Calculating what needs to be re-inserted
-		double S = 0;
-		for( int i = 0; i < N; i++ )
+	
+	for (int j = 0; j < 10; j++) {
+		cout << "iter start: " << j << endl;
+		struct timespec start, finish;
+		double elapsed;
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		while( !converged )
 		{
-			S += rNew[i];
+			// pthread_t tids[7];
+			// int args0[] = {0, 4935};
+			// int args1[] = {4935, 9870};
+			// int args2[] = {9870, 14805};
+			// int args3[] = {14805, 19740};
+			// int args4[] = {19740, 19740+4935};
+			// int args5[] = {19740+4935, 19740+4935+4935};
+			// int args6[] = {19740+4935+4935, 34546};
+
+			// pthread_create(&tids[0], NULL, Runner, (void *) args0);
+			// pthread_create(&tids[1], NULL, Runner, (void *) args1);
+			// pthread_create(&tids[2], NULL, Runner, (void *) args2);
+			// pthread_create(&tids[3], NULL, Runner, (void *) args3);
+			// pthread_create(&tids[4], NULL, Runner, (void *) args4);
+			// pthread_create(&tids[5], NULL, Runner, (void *) args5);
+			// pthread_create(&tids[6], NULL, Runner, (void *) args6);
+
+			// pthread_join(tids[0], NULL);
+			// pthread_join(tids[1], NULL);
+			// pthread_join(tids[2], NULL);
+			// pthread_join(tids[3], NULL);
+			// pthread_join(tids[4], NULL);
+			// pthread_join(tids[5], NULL);
+			// pthread_join(tids[6], NULL);
+
+			// pthread_t tids[4];
+			// int args0[] = {0, 8636};
+			// int args1[] = {8636, 17273};
+			// int args2[] = {17273, 17273+8636};
+			// int args3[] = {17273+8636, 34546};
+
+			// pthread_create(&tids[0], NULL, Runner, (void *) args0);
+			// pthread_create(&tids[1], NULL, Runner, (void *) args1);
+			// pthread_create(&tids[2], NULL, Runner, (void *) args2);
+			// pthread_create(&tids[3], NULL, Runner, (void *) args3);
+
+			// pthread_join(tids[0], NULL);
+			// pthread_join(tids[1], NULL);
+			// pthread_join(tids[2], NULL);
+			// pthread_join(tids[3], NULL);
+
+			pthread_t tid;
+			int args0[] = {0, 34546};
+
+			pthread_create(&tid, NULL, Runner, (void *) args0);
+			pthread_join(tid, NULL);
+
+			// Re-insert the leaked PageRank
+			// Should we re-insert it to all nodes?
+			// or should we re-insert it to only the starting node?
+			// Calculating what needs to be re-inserted
+			double S = 0;
+			for( int i = 0; i < N; i++ )
+			{
+				S += rNew[i];
+			}
+			// re-inserted
+			rNew[ids.find(nodeIdA)->second] += (1.0 - S);
+			// debug
+			/*for( int i = 0; i < 4; i ++ )
+			{
+				rNew[i] += (1.0 - S) / Ndb;
+			}*/
+
+			// given the old and new row vectors, rOld and rNew,
+			// tells if convergence has been reached
+			iteration++;
+			if(iteration == 5)
+				converged = true;
+
+			//converged = isConverged(rOld, rNew, N);
+
+			// rOld becomes rNew
+			// delete rOld, create new rOld, init rOld to same values as rNew done
+			for(int i = 0 ; i < N; i++){
+				rOld[i] = rNew[i];
+			}
 		}
-		// re-inserted
-		rNew[ids.find(nodeIdA)->second] += (1.0 - S);
-		// debug
-		/*for( int i = 0; i < 4; i ++ )
+		converged = false;
+		iteration = 0;
+		bool finalCheck = isCorrect(rNew, N);
+		clock_gettime(CLOCK_MONOTONIC, &finish);
+
+		elapsed = (finish.tv_sec - start.tv_sec);
+		elapsed += (finish.tv_nsec - start.tv_nsec) / 1000000000.0;
+		if( finalCheck )
 		{
-			rNew[i] += (1.0 - S) / Ndb;
-		}*/
-
-		// given the old and new row vectors, rOld and rNew,
-		// tells if convergence has been reached
-		iteration++;
-		if(iteration == 5)
-			converged = true;
-
-		//converged = isConverged(rOld, rNew, N);
-
-		// rOld becomes rNew
-		// delete rOld, create new rOld, init rOld to same values as rNew done
-		for(int i = 0 ; i < N; i++){
-			rOld[i] = rNew[i];
+			cout << "Success!" << endl;
+			cout << "Calculation time:" << (double) elapsed << endl;
 		}
+		else
+			cout << "Failure!" << endl;
+
+		fill(rOld, rOld+N, 0);
+		rOld[ids.find(nodeIdA)->second] = 1;
+		cout << "iter end: " << j << endl;
 	}
 	
+	
 	// Should return true iff the sum of all values of the row vector rNew is equal to 1
-	bool finalCheck = isCorrect(rNew, N);
-	end = clock();
-	if( finalCheck )
-	{
-		cout << "Success!" << endl;
-		cout << "Calculation time:" << (double) (end -  begin) << endl;
-	}
-	else
-		cout << "Failure!" << endl;
+	
 
 	// generate key value pairs for index and sim-rank value
 	pair<double, TInt> rNewPaired[N];
