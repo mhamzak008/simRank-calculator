@@ -9,5 +9,4 @@ Usage: [node-id A] [dataset path]
 Example Usage commands:
 
 make
-
 ./main 9704296 dataset/high-energy-physics-citation-network/Cit-HepPh.txt
