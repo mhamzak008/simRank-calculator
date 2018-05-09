@@ -1,11 +1,56 @@
+#include <iostream>
+
 #include "stdafx.h"
 #include "Snap.h"
 #include <map>
-#include <cstdio>
+#include <pthread.h>
+#include <unordered_map>
 #include <ctime>
-#include <iostream>
 
 using namespace std;
+
+PNGraph graph;
+double *rOld;
+double *rNew;
+
+map <int, int> reverseIds;
+map<TInt, TInt*> preProcessedInNodes;
+map <int, int> ids;
+
+void *Runner(void *args) {
+	int* args2 = (int *) args;
+	int start = args2[0];
+	int end = args2[1];
+
+	TNGraph::TNodeI begin = graph->GetNI(reverseIds.find(start)->second);
+	TNGraph::TNodeI finish = graph->GetNI(reverseIds.find(end)->second);
+
+	while (begin < finish) {
+		int noOfInNodes = begin.GetInDeg();
+		int NId = begin.GetId();
+
+		if (noOfInNodes < 1) {
+			rNew[start] = 0;
+		}
+		else {
+			TInt* inNodesList = preProcessedInNodes[NId];
+
+			double sum = 0;
+			for (int i = 0; i < noOfInNodes; i++) {
+				TNGraph::TNodeI MI = graph->GetNI(inNodesList[i]);
+				int outDegreeOfInNode = MI.GetOutDeg();
+
+				sum += 0.8 * (rOld[ids.find(inNodesList[i])->second] / outDegreeOfInNode);
+			}
+			rNew[start] = sum;
+		}
+		start++;
+		begin++;
+	}
+
+	pthread_exit(0);
+
+}
 
 bool isCorrect(double* rNew, int size)
 {
@@ -16,7 +61,7 @@ bool isCorrect(double* rNew, int size)
 		sum += rNew[i];
 	}
 	cout << "Sum is: "<< sum << endl;
-	if( sum >= 0.99999 && sum <= 1.00001 )
+	if( sum >= 0.99999 )
 	{		
 		return true;
 	}
@@ -67,8 +112,8 @@ TInt* getInNodesList(TInt nodeId, PNGraph graph, int size) {
 
 	return result;
 }
-
-node* calculateSimRank( int argc, char* argv[], node output[] ) 
+// node id a: 212168, node id b: 112041
+void calculateSimRank( int argc, char** argv, TInt *output) 
 {
 	Env = TEnv(argc, argv, TNotify::StdNotify);
 
@@ -81,37 +126,36 @@ node* calculateSimRank( int argc, char* argv[], node output[] )
 
 	// Gets the ids of the papers from user whose similarity is to be calculated
 	// also gets the path of the dataset from the user
-	if(argc != 4)
+	if(argc != 3)
 	{
-		printf("Usage: %s [node-id A] [node-id B] [dataset path]\n", argv[0]);
+		printf("Usage: %s [node-id A] [dataset path]\n", argv[0]);
 		exit(1);
 	}
 	TInt nodeIdA = atoi(argv[1]);
-	TInt nodeIdB = atoi(argv[2]);
-	TStr dataSetPath = argv[3];
+	TStr dataSetPath = argv[2];
 //	dataSetPath2 = argv[3];
 
 	// Reads the graph from dataSetPath into PGraph using snap
 	// updates N to the size of the graph
 	const TStr InFNm = Env.GetIfArgPrefixStr("-i:", dataSetPath, "Input directed graph file");
-	PNGraph graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
+	graph = TSnap::LoadEdgeList<PNGraph>(InFNm, 0, 1); 
 
 	int N = graph->GetNodes();
 //	double Ndb = N;
-
 	//Generates key-val pairs from graph
 	int i = 0;
-	map <int, int> ids;
+	
 	for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++)		
 	{
 		ids.insert(pair <int, int> (NI.GetId(), i));
+		reverseIds.insert(pair <int, int> (i, NI.GetId()));
 		i++;
 	}
 
 	// Initializes the default values of the row vector rOld --> rOldInit
 	// Should we initialize all rOld values to 0 except for the starting node?
 	// Or should we assign equal initial probabilities to all nodes?
-	double *rOld= new double[N];
+	rOld = new double[N];
 
 	// initializing all nodes with equal initial porbabilities
 	// double val= 1 / Ndb;
@@ -120,42 +164,61 @@ node* calculateSimRank( int argc, char* argv[], node output[] )
 	// initializing all rOld values to 0 except for the starting node
 	fill(rOld, rOld+N, 0);
 	rOld[ids.find(nodeIdA)->second] = 1;
+	clock_t begin = clock();
+	// calculate inNodes for all graphs
+	int iter = 0;
+	for(TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++) {
+		if (iter % 1000 == 0)
+			printf("pre-process %d\n", iter);
+		preProcessedInNodes.insert(pair <TInt, TInt*> (NI.GetId(), getInNodesList(NI.GetId(), graph, N)));
+		iter++;
+	}	
+	clock_t end = clock();
+	printf("data preprocessing done in: %lf\n", (double) (end - begin));
 
-	double *rNew = new double[N];
+	rNew = new double[N];
 
 	// Calculates simRank i.e pageRank with restarts with respect to nodeIdA
+	begin = clock();
 	bool converged = false;
 	int iteration = 0;
-	while( converged == false )
-	{	
-		for (TNGraph::TNodeI NI = graph->BegNI(); NI < graph->EndNI(); NI++)		
-		{
-			// gets the total number of inNodes for a particular node given its id
-			//TNGraph::TNodeI NI = graph->GetNI(j);
-			int noOfInNodes = NI.GetInDeg();
-			int NId = NI.GetId();
-			
-			if( noOfInNodes < 1 )
-			{
-				rNew[ids.find(NId)->second] = 0;
-			}
-			else
-			{
-				// gets the list of inNodes of a particular node given its id
-				TInt* inNodesList = getInNodesList(NId, graph, N);
+	while( !converged )
+	{
 
-				double sum = 0;
-				for( int i = 0; i < noOfInNodes; i++ )
-				{
-					// gets the out-degree of a particular in-node given its id
-					TNGraph::TNodeI MI = graph->GetNI(inNodesList[i]);
-					int outDegreeOfInNode = MI.GetOutDeg();
-					
-					sum += beta * ( rOld[ids.find(inNodesList[i])->second] / outDegreeOfInNode );
-				}
-				rNew[ids.find(NId)->second] = sum;
-			}
-		}
+		// pthread_t tids[7];
+		// int args0[] = {0, 4935};
+		// int args1[] = {4935, 9870};
+		// int args2[] = {9870, 14805};
+		// int args3[] = {14805, 19740};
+		// int args4[] = {19740, 19740+4935};
+		// int args5[] = {19740+4935, 19740+4935+4935};
+		// int args6[] = {19740+4935+4935, 34546};
+
+		// pthread_create(&tids[0], NULL, Runner, (void *) args0);
+		// pthread_create(&tids[1], NULL, Runner, (void *) args1);
+		// pthread_create(&tids[2], NULL, Runner, (void *) args2);
+		// pthread_create(&tids[3], NULL, Runner, (void *) args3);
+		// pthread_create(&tids[4], NULL, Runner, (void *) args4);
+		// pthread_create(&tids[5], NULL, Runner, (void *) args5);
+		// pthread_create(&tids[6], NULL, Runner, (void *) args6);
+
+		// pthread_join(tids[0], NULL);
+		// pthread_join(tids[1], NULL);
+		// pthread_join(tids[2], NULL);
+		// pthread_join(tids[3], NULL);
+		// pthread_join(tids[4], NULL);
+		// pthread_join(tids[5], NULL);
+		// pthread_join(tids[6], NULL);
+
+		pthread_t tids[2];
+		int args0[] = {0, 17273};
+		int args1[] = {17273, 34546};
+
+		pthread_create(&tids[0], NULL, Runner, (void *) args0);
+		pthread_create(&tids[1], NULL, Runner, (void *) args1);
+
+		pthread_join(tids[0], NULL);
+		pthread_join(tids[1], NULL);
 
 		// Re-insert the leaked PageRank
 		// Should we re-insert it to all nodes?
@@ -191,20 +254,29 @@ node* calculateSimRank( int argc, char* argv[], node output[] )
 	
 	// Should return true iff the sum of all values of the row vector rNew is equal to 1
 	bool finalCheck = isCorrect(rNew, N);
-
+	end = clock();
 	if( finalCheck )
 	{
 		cout << "Success!" << endl;
-
-		cout << "simRank of " << nodeIdB << " with respect to " << nodeIdA << " is: " << rNew[ids.find(nodeIdB)->second] << endl;
+		cout << "Calculation time:" << (double) (end -  begin) << endl;
 	}
 	else
 		cout << "Failure!" << endl;
+
+	// generate key value pairs for index and sim-rank value
+	pair<double, TInt> rNewPaired[N];
+	for (int i = 0; i < N; i++) {
+		rNewPaired[i] = pair<double, TInt> (rNew[i], reverseIds.find(i)->second);
+	}
+	// sort the paired array
+	sort(rNewPaired, rNewPaired+N);
+	// fill the return array with the top 100 matches
+	for (int i = 0; i < 100; i++) {
+		output[i] = rNewPaired[N-i-1].second;
+	}
 
 	// Clean up
 	delete[] rOld;
 	delete[] rNew;
 
-	return output;
 }
-
