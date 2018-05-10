@@ -179,53 +179,64 @@ void calculateSimRank( int argc, char** argv, TInt *output)
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		while( !converged )
 		{
-			// pthread_t tids[7];
-			// int args0[] = {0, 4935};
-			// int args1[] = {4935, 9870};
-			// int args2[] = {9870, 14805};
-			// int args3[] = {14805, 19740};
-			// int args4[] = {19740, 19740+4935};
-			// int args5[] = {19740+4935, 19740+4935+4935};
-			// int args6[] = {19740+4935+4935, 34546};
+			// 7-thread configureation
+			pthread_t tids[7];
+			int args0[] = {0, 4935};
+			int args1[] = {4935, 9870};
+			int args2[] = {9870, 14805};
+			int args3[] = {14805, 19740};
+			int args4[] = {19740, 19740+4935};
+			int args5[] = {19740+4935, 19740+4935+4935};
+			int args6[] = {19740+4935+4935, 34546};
 
-			// pthread_create(&tids[0], NULL, Runner, (void *) args0);
-			// pthread_create(&tids[1], NULL, Runner, (void *) args1);
-			// pthread_create(&tids[2], NULL, Runner, (void *) args2);
-			// pthread_create(&tids[3], NULL, Runner, (void *) args3);
-			// pthread_create(&tids[4], NULL, Runner, (void *) args4);
-			// pthread_create(&tids[5], NULL, Runner, (void *) args5);
-			// pthread_create(&tids[6], NULL, Runner, (void *) args6);
+			pthread_create(&tids[0], NULL, Runner, (void *) args0);
+			pthread_create(&tids[1], NULL, Runner, (void *) args1);
+			pthread_create(&tids[2], NULL, Runner, (void *) args2);
+			pthread_create(&tids[3], NULL, Runner, (void *) args3);
+			pthread_create(&tids[4], NULL, Runner, (void *) args4);
+			pthread_create(&tids[5], NULL, Runner, (void *) args5);
+			pthread_create(&tids[6], NULL, Runner, (void *) args6);
 
-			// pthread_join(tids[0], NULL);
-			// pthread_join(tids[1], NULL);
-			// pthread_join(tids[2], NULL);
-			// pthread_join(tids[3], NULL);
-			// pthread_join(tids[4], NULL);
-			// pthread_join(tids[5], NULL);
-			// pthread_join(tids[6], NULL);
+			pthread_join(tids[0], NULL);
+			pthread_join(tids[1], NULL);
+			pthread_join(tids[2], NULL);
+			pthread_join(tids[3], NULL);
+			pthread_join(tids[4], NULL);
+			pthread_join(tids[5], NULL);
+			pthread_join(tids[6], NULL);
+			
+			// 4-thread configuration
+			/*
+			pthread_t tids[4];
+			int args0[] = {0, 8636};
+			int args1[] = {8636, 17273};
+			int args2[] = {17273, 17273+8636};
+			int args3[] = {17273+8636, 34546};
 
-			// pthread_t tids[4];
-			// int args0[] = {0, 8636};
-			// int args1[] = {8636, 17273};
-			// int args2[] = {17273, 17273+8636};
-			// int args3[] = {17273+8636, 34546};
+			pthread_create(&tids[0], NULL, Runner, (void *) args0);
+			pthread_create(&tids[1], NULL, Runner, (void *) args1);
+			pthread_create(&tids[2], NULL, Runner, (void *) args2);
+			pthread_create(&tids[3], NULL, Runner, (void *) args3);
 
-			// pthread_create(&tids[0], NULL, Runner, (void *) args0);
-			// pthread_create(&tids[1], NULL, Runner, (void *) args1);
-			// pthread_create(&tids[2], NULL, Runner, (void *) args2);
-			// pthread_create(&tids[3], NULL, Runner, (void *) args3);
-
-			// pthread_join(tids[0], NULL);
-			// pthread_join(tids[1], NULL);
-			// pthread_join(tids[2], NULL);
-			// pthread_join(tids[3], NULL);
-
-			pthread_t tid;
-			int args0[] = {0, 34546};
-
-			pthread_create(&tid, NULL, Runner, (void *) args0);
-			pthread_join(tid, NULL);
-
+			pthread_join(tids[0], NULL);
+			pthread_join(tids[1], NULL);
+			pthread_join(tids[2], NULL);
+			pthread_join(tids[3], NULL);
+			*/
+			
+			// 2-thread configuration
+			/*
+			pthread tids[2];
+			int args0[] = {0, 17273};
+			int args1[] = {17273, 34546};
+			
+			pthread_create(&tids[0], NULL, Runner, (void *) args0);
+			pthread_create(&tids[1], NULL, Runner, (void *) args1);
+			
+			pthread_join(tids[0], NULL);
+			pthread_join(tids[1], NULL);
+			*/
+			
 			// Re-insert the leaked PageRank
 			// Should we re-insert it to all nodes?
 			// or should we re-insert it to only the starting node?
